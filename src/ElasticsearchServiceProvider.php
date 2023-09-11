@@ -1,10 +1,10 @@
 <?php
 
-namespace Baijunyao\LaravelScoutElasticsearch;
+namespace LightSpeak\LaravelScoutElasticsearch;
 
 use Laravel\Scout\EngineManager;
 use Illuminate\Support\ServiceProvider;
-use Baijunyao\LaravelScoutElasticsearch\Engine\ElasticsearchEngine;
+use LightSpeak\LaravelScoutElasticsearch\Engine\ElasticsearchEngine;
 
 class ElasticsearchServiceProvider extends ServiceProvider
 {
@@ -13,7 +13,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        app(EngineManager::class)->extend('elasticsearch', function($app) {
+        app(EngineManager::class)->extend('elasticsearch', function ($app) {
             return new ElasticsearchEngine();
         });
     }
@@ -26,7 +26,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/Config/laravel-scout-elasticsearch.php', 'scout'
+            __DIR__ . '/Config/laravel-scout-elasticsearch.php', 'scout'
         );
     }
 }

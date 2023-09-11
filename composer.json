@@ -1,31 +1,40 @@
 {
-    "name": "baijunyao/laravel-scout-elasticsearch",
-    "keywords": ["laravel", "scout", "elasticsearch"],
-    "description": "Elasticsearch Driver for Laravel Scout",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "baijunyao",
-            "email": "baijunyao@baijunyao.com"
-        }
-    ],
-    "require": {
-        "laravel/scout": "^7.1 | ^8.0|^9.0",
-        "elasticsearch/elasticsearch": "^6.0 | ^7.0",
-        "illuminate/support": "^7.0 | ^8.0|^9.0",
-        "illuminate/database": "^7.0 | ^8.0|^9.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Baijunyao\\LaravelScoutElasticsearch\\": "src/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Baijunyao\\LaravelScoutElasticsearch\\ElasticsearchServiceProvider"
-            ]
-        }
+  "name": "light-speak/laravel-scout-elasticsearch",
+  "keywords": [
+    "laravel",
+    "scout",
+    "elasticsearch"
+  ],
+  "description": "Elasticsearch Driver for Laravel Scout",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "linty",
+      "email": "linty@light-speak.com"
     }
+  ],
+  "require": {
+    "laravel/scout": "^7.1|^8.0|^9.0|^10.0",
+    "elasticsearch/elasticsearch": "^6.0|^7.0|^8.0",
+    "illuminate/support": "^7.0|^8.0|^9.0|^10.0",
+    "illuminate/database": "^7.0|^8.0|^9.0|^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "LightSpeak\\LaravelScoutElasticsearch\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "LightSpeak\\LaravelScoutElasticsearch\\ElasticsearchServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
 }

@@ -1,11 +1,11 @@
 <?php
 
-namespace Baijunyao\LaravelScoutElasticsearch\Engine;
+namespace LightSpeak\LaravelScoutElasticsearch\Engine;
 
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
 use Illuminate\Database\Eloquent\Collection;
-use Baijunyao\LaravelScoutElasticsearch\ElasticsearchClientTrait;
+use LightSpeak\LaravelScoutElasticsearch\ElasticsearchClientTrait;
 
 class ElasticsearchEngine extends Engine
 {
@@ -29,27 +29,26 @@ class ElasticsearchEngine extends Engine
     /**
      * Update the given model in the index.
      *
-     * @param  Collection  $models
+     * @param Collection $models
      * @return void
      */
     public function update($models)
     {
         $params['body'] = [];
 
-        $models->each(function($model) use (&$params)
-        {
-            $type = $model->searchableAs();
-            $index = config('scout.elasticsearch.prefix').$type;
+        $models->each(function ($model) use (&$params) {
+            $type             = $model->searchableAs();
+            $index            = config('scout.elasticsearch.prefix') . $type;
             $params['body'][] = [
                 'update' => [
-                    '_id' => $model->getKey(),
+                    '_id'    => $model->getKey(),
                     '_index' => $index,
-                    '_type' => $type,
+                    '_type'  => $type,
                 ]
             ];
-            $doc = collect($model->toSearchableArray())->except(['created_at', 'updated_at', 'deleted_at']);
+            $doc              = collect($model->toSearchableArray())->except(['created_at', 'updated_at', 'deleted_at']);
             $params['body'][] = [
-                'doc' => $doc,
+                'doc'           => $doc,
                 'doc_as_upsert' => true
             ];
         });
@@ -58,83 +57,36 @@ class ElasticsearchEngine extends Engine
     }
 
     /**
-     * Remove the given model from the index.
-     *
-     * @param  Collection  $models
-     * @return void
-     */
-    public function delete($models)
-    {
-        $params['body'] = [];
-
-        $models->each(function($model) use (&$params)
-        {
-            $type = $model->searchableAs();
-            $index = config('scout.elasticsearch.prefix').$type;
-            $params['body'][] = [
-                'delete' => [
-                    '_id' => $model->getKey(),
-                    '_index' => $index,
-                    '_type' => $type,
-                ]
-            ];
-        });
-
-        $this->elastic->bulk($params);
-    }
-
-    /**
      * Perform the given search on the engine.
      *
-     * @param  Builder  $builder
+     * @param Builder $builder
      * @return mixed
      */
     public function search(Builder $builder)
     {
         return $this->performSearch($builder, array_filter([
             'numericFilters' => $this->filters($builder),
-            'size' => $builder->limit,
+            'size'           => $builder->limit,
         ]));
     }
 
     /**
      * Perform the given search on the engine.
      *
-     * @param  Builder  $builder
-     * @param  int  $perPage
-     * @param  int  $page
-     * @return mixed
-     */
-    public function paginate(Builder $builder, $perPage, $page)
-    {
-        $result = $this->performSearch($builder, [
-            'numericFilters' => $this->filters($builder),
-            'from' => (($page * $perPage) - $perPage),
-            'size' => $perPage,
-        ]);
-
-       $result['nbPages'] = $result['hits']['total']/$perPage;
-
-        return $result;
-    }
-
-    /**
-     * Perform the given search on the engine.
-     *
-     * @param  Builder  $builder
-     * @param  array  $options
+     * @param Builder $builder
+     * @param array $options
      * @return mixed
      */
     protected function performSearch(Builder $builder, array $options = [])
     {
-        $type = $builder->model->searchableAs();
+        $type   = $builder->model->searchableAs();
         $filter = config('scout.elasticsearch.filter');
-        $query = str_replace($filter, '', $builder->query);
-        $index = config('scout.elasticsearch.prefix').$type;
+        $query  = str_replace($filter, '', $builder->query);
+        $index  = config('scout.elasticsearch.prefix') . $type;
         $params = [
             'index' => $index,
-            'type' => $type,
-            'body' => [
+            'type'  => $type,
+            'body'  => [
                 'query' => [
                     'bool' => [
                         'must' => [
@@ -185,31 +137,19 @@ class ElasticsearchEngine extends Engine
     }
 
     /**
-     * Get the filter array for the query.
+     * Generates the sort if theres any.
      *
-     * @param  Builder  $builder
-     * @return array
+     * @param Builder $builder
+     * @return array|null
      */
-    protected function filters(Builder $builder)
+    protected function sort($builder)
     {
-        return collect($builder->wheres)->map(function ($value, $key) {
-            if (is_array($value)) {
-                return ['terms' => [$key => $value]];
-            }
-
-            return ['match_phrase' => [$key => $value]];
-        })->values()->all();
-    }
-
-    /**
-     * Pluck and return the primary keys of the given results.
-     *
-     * @param  mixed  $results
-     * @return \Illuminate\Support\Collection
-     */
-    public function mapIds($results)
-    {
-        return collect($results['hits']['hits'])->pluck('_id')->values();
+        if (count($builder->orders) == 0) {
+            return null;
+        }
+        return collect($builder->orders)->map(function ($order) {
+            return [$order['column'] => $order['direction']];
+        })->toArray();
     }
 
     /**
@@ -227,7 +167,7 @@ class ElasticsearchEngine extends Engine
         }
 
         $keys = collect($results['hits']['hits'])
-                        ->pluck('_id')->values()->all();
+            ->pluck('_id')->values()->all();
 
         $models = $model->whereIn(
             $model->getKeyName(), $keys
@@ -239,9 +179,58 @@ class ElasticsearchEngine extends Engine
     }
 
     /**
+     * Get the filter array for the query.
+     *
+     * @param Builder $builder
+     * @return array
+     */
+    protected function filters(Builder $builder)
+    {
+        return collect($builder->wheres)->map(function ($value, $key) {
+            if (is_array($value)) {
+                return ['terms' => [$key => $value]];
+            }
+
+            return ['match_phrase' => [$key => $value]];
+        })->values()->all();
+    }
+
+    /**
+     * Perform the given search on the engine.
+     *
+     * @param Builder $builder
+     * @param int $perPage
+     * @param int $page
+     * @return mixed
+     */
+    public function paginate(Builder $builder, $perPage, $page)
+    {
+        $result = $this->performSearch($builder, [
+            'numericFilters' => $this->filters($builder),
+            'from'           => (($page * $perPage) - $perPage),
+            'size'           => $perPage,
+        ]);
+
+        $result['nbPages'] = $result['hits']['total'] / $perPage;
+
+        return $result;
+    }
+
+    /**
+     * Pluck and return the primary keys of the given results.
+     *
+     * @param mixed $results
+     * @return \Illuminate\Support\Collection
+     */
+    public function mapIds($results)
+    {
+        return collect($results['hits']['hits'])->pluck('_id')->values();
+    }
+
+    /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param  mixed  $results
+     * @param mixed $results
      * @return int
      */
     public function getTotalCount($results)
@@ -257,18 +246,42 @@ class ElasticsearchEngine extends Engine
     }
 
     /**
-     * Generates the sort if theres any.
+     * Remove the given model from the index.
      *
-     * @param  Builder $builder
-     * @return array|null
+     * @param Collection $models
+     * @return void
      */
-    protected function sort($builder)
+    public function delete($models)
     {
-        if (count($builder->orders) == 0) {
-            return null;
-        }
-        return collect($builder->orders)->map(function($order) {
-            return [$order['column'] => $order['direction']];
-        })->toArray();
+        $params['body'] = [];
+
+        $models->each(function ($model) use (&$params) {
+            $type             = $model->searchableAs();
+            $index            = config('scout.elasticsearch.prefix') . $type;
+            $params['body'][] = [
+                'delete' => [
+                    '_id'    => $model->getKey(),
+                    '_index' => $index,
+                    '_type'  => $type,
+                ]
+            ];
+        });
+
+        $this->elastic->bulk($params);
+    }
+
+    public function lazyMap(Builder $builder, $results, $model)
+    {
+        // TODO: Implement lazyMap() method.
+    }
+
+    public function createIndex($name, array $options = [])
+    {
+        // TODO: Implement createIndex() method.
+    }
+
+    public function deleteIndex($name)
+    {
+        // TODO: Implement deleteIndex() method.
     }
 }

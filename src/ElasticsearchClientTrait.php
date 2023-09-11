@@ -1,6 +1,6 @@
 <?php
 
-namespace Baijunyao\LaravelScoutElasticsearch;
+namespace LightSpeak\LaravelScoutElasticsearch;
 
 use Elasticsearch\ClientBuilder;
 
@@ -14,12 +14,12 @@ trait ElasticsearchClientTrait
     public function getElasticsearchClient()
     {
         $hosts = [
-            'host' => config('scout.elasticsearch.host'),
-            'port' => config('scout.elasticsearch.port'),
+            'host'   => config('scout.elasticsearch.host'),
+            'port'   => config('scout.elasticsearch.port'),
             'scheme' => config('scout.elasticsearch.scheme'),
         ];
-        $user = config('scout.elasticsearch.user');
-        $pass = config('scout.elasticsearch.pass');
+        $user  = config('scout.elasticsearch.user');
+        $pass  = config('scout.elasticsearch.pass');
 
         if ($user !== null) {
             $hosts['user'] = $user;
