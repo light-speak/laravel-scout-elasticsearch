@@ -2,16 +2,19 @@
 
 namespace LightSpeak\LaravelScoutElasticsearch;
 
-use Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Exception\AuthenticationException;
+use Elastic\Elasticsearch\Client;
 
 trait ElasticsearchClientTrait
 {
     /**
      * Get ElasticSearch Client
      *
-     * @return \Elasticsearch\Client
+     * @return Client
+     * @throws AuthenticationException
      */
-    public function getElasticsearchClient()
+    public function getElasticsearchClient(): Client
     {
         $hosts = [
             'host'   => config('scout.elasticsearch.host'),
@@ -29,10 +32,8 @@ trait ElasticsearchClientTrait
             $hosts['pass'] = $pass;
         }
 
-        $client = ClientBuilder::create()
+        return ClientBuilder::create()
             ->setHosts([$hosts])
             ->build();
-
-        return $client;
     }
 }

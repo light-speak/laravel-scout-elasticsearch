@@ -222,7 +222,7 @@ class ElasticsearchEngine extends Engine
      * @param mixed $results
      * @return \Illuminate\Support\Collection
      */
-    public function mapIds($results)
+    public function mapIds($results): \Illuminate\Support\Collection
     {
         return collect($results['hits']['hits'])->pluck('_id')->values();
     }
